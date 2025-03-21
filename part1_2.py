@@ -30,8 +30,3 @@ df3 = pd.DataFrame(data)
 
 print("Part 2 using requests")
 print(df3.head())
-
-
-#Part 3 
-
-
