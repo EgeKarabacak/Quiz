@@ -1,34 +1,30 @@
 from flask import Flask, request, jsonify
 import pandas as pd
+import requests
 
 app = Flask(__name__)
 
-# Sample CSV file for demonstration
-data = [
-    {"id": 1, "name": "Ege", "age": 29, "City": "Ottawa"},
-    {"id": 2, "name": "Josh", "age": 30, "City": "Ottawa"},
-    {"id": 3, "name": "Omar", "age": 35, "City": "Toronto"}
-]
-df = pd.DataFrame(data)
-
 @app.route('/')
 def hello():
-    return "Welcome to the Data API!"
+    return "Welcome to the Docker Data API!"
 
 @app.route('/data', methods=['POST'])
 def process_data():
-    # In a real-world scenario, you would load a CSV file here
-    # For simplicity, we're working with the preloaded `df` DataFrame
-    # You can extend it to read from a CSV if needed
+    api_url = 'https://data.cityofnewyork.us/resource/qmcw-ur37.csv'
     
-    # Example processing: calculate average age
-    average_age = df['age'].mean()
+    try:
+        response = requests.get(api_url, timeout=10)  # Set a timeout for reliability
+        response.raise_for_status()
+        
+        # Read CSV content from API response
+        df = pd.read_csv(pd.compat.StringIO(response.text))  # Convert text to readable CSV
 
-    # Returning response
-    return jsonify({
-        'message': 'Data processed successfully!',
-        'average_age': average_age
-    })
+        return jsonify({
+            'message': 'Data processed successfully!',
+        })
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
